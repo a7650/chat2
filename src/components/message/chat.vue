@@ -55,6 +55,11 @@ export default {
     }
   },
   methods: {
+    set_unreadnum(name, num) {
+      let newNum = {};
+      newNum[name] = num;
+      this.SET_UNREADNUM(Object.assign({}, this.UNREAD_NUM, newNum));
+    },
     getUnread() {
       this.$socket.emit("unified", "getUnread", this.USER.name);
     },
@@ -62,9 +67,7 @@ export default {
       for (let key in data) {
         if (!this.message[key]) {
           this.$set(this.message, key, data[key]);
-          let newNum = {};
-          newNum[key] = data[key].length;
-          this.SET_UNREADNUM(Object.assign({}, this.UNREAD_NUM, newNum));
+          this.set_unreadnum(key,data[key].length)
         } else {
           this.message[key].concat(data[key]);
         }
@@ -94,6 +97,12 @@ export default {
         this.$set(this.message, data.sendBy, [data.mes]);
       } else {
         this.message[data.sendBy].push(data.mes);
+      }
+
+      if(data.sendBy!==this.CURRENT_LINK){
+        let n = this.UNREAD_NUM[data.sendBy]
+        let num = n?n+1:1
+        this.set_unreadnum(data.sendBy,num)
       }
     },
     ...mapMutations(["SET_CURRENTLINK", "SET_UNREADNUM"])
@@ -125,7 +134,7 @@ header {
   .right {
     height: 100%;
     width: 40%;
-    display: inline-block;
+    display: block;
     float: left;
   }
   h4 {

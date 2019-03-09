@@ -3,10 +3,26 @@
     <div class="search">
       <div class="s">
         <input type="text" v-model="searchText">
-        <i class="icon-search"></i>
+        <i class="icon-search" :class="{left:iStyle}"></i>
       </div>
     </div>
     <ul class="lists">
+      <li class="add-new" v-show="searchText">
+        <div v-show="tip===1" class="tip tip1" @click="addFriend1">
+          从网络上添加"
+          <span class="name">{{searchText}}</span>"
+        </div>
+        <div v-show="tip===2" class="tip tip2">
+          <div>
+            你将添加"
+            <span class="name">{{c_search}}</span>"
+          </div>
+          <input type="text" placeholder="添加验证信息" v-model="add_mes">
+          <br>
+          <button @click="addFriend2">发送</button>
+        </div>
+        <div v-show="tip===3" class="tip tip3">{{tip3_mes}}</div>
+      </li>
       <li class="list" v-for="item in filterFRIENDS" :key="item" @click="select_friend(item)">
         <div class="avatar">{{item[0]}}</div>
         <div class="name">{{item}}</div>
@@ -21,13 +37,24 @@ import { mapGetters, mapMutations } from "vuex";
 export default {
   data() {
     return {
-      searchText: ""
+      searchText: "",
+      tip: 1,
+      tip3_mes: "",
+      c_search: "",
+      add_mes:""
     };
   },
   props: ["friendsShow"],
   computed: {
+    iStyle() {
+      if (this.searchText) {
+        return true;
+      }
+      return false;
+    },
     filterFRIENDS() {
       let n = this.searchText.toLowerCase();
+      this.tip = 1;
       if (!n) {
         return this.FRIENDS;
       }
@@ -36,20 +63,51 @@ export default {
       });
       return result;
     },
-    ...mapGetters(["FRIENDS", "CURRENT_LINK", "UNREAD_NUM","USER"])
+    ...mapGetters(["FRIENDS", "CURRENT_LINK", "UNREAD_NUM", "USER"])
   },
   methods: {
+    addFriend1() {
+      this.c_search = this.searchText;
+      let n = this.FRIENDS.findIndex(i => i === this.c_search);
+      if (n > -1) {
+        this.tip3_mes = "对方已经是你的好友了";
+        this.tip = 3;
+        return;
+      }
+      this.$socket.emit("unified", "addFriend1", {
+        from: this.USER.name,
+        to: this.searchText
+      });
+    },
+    c_addFriend1(data) {
+      if (data.code) {
+        this.tip = 2;
+      } else {
+        this.tip3_mes = "不存在此人";
+        this.tip = 3;
+      }
+    },
+    addFriend2(){
+      this.$socket.emit('unified','addFriend2',{from:this.USER.name,to:this.c_search,mes:this.add_mes})
+    },
     select_friend(name) {
       this.SET_CURRENTLINK(name);
       if (this.UNREAD_NUM[name]) {
         let newNum = {};
         newNum[name] = 0;
-        this.SET_UNREADNUM(Object.assign({},this.UNREAD_NUM,newNum))
-        let data = {from:this.USER.name,to:name}
-        this.$socket.emit("unified","hasRead",data)
+        this.SET_UNREADNUM(Object.assign({}, this.UNREAD_NUM, newNum));
+        let data = { from: this.USER.name, to: name };
+        this.$socket.emit("unified", "hasRead", data);
       }
     },
     ...mapMutations(["SET_CURRENTLINK", "SET_UNREADNUM"])
+  },
+  sockets: {
+    c_unified(res) {
+      let type = res[0];
+      let data = res[1];
+      this[type](data);
+    }
   }
 };
 </script>
@@ -90,9 +148,53 @@ export default {
   }
   .s {
     padding-top: 20px;
+    .left {
+      transform: translateX(0);
+    }
   }
   .s:hover > i {
     transform: translateX(0);
+  }
+}
+.add-new {
+  font-size: 15px;
+  color: #000;
+  background-color: #fff;
+  line-height: 30px;
+  text-align: center;
+  border-bottom: 1px solid @line-color;
+  background-color: rgb(243, 243, 243);
+  margin-bottom: 5px;
+  .tip{
+    height: 30px;
+    width: 100%;
+  }
+  .name {
+    color: @theme1;
+  }
+  .tip3 {
+    color: #ff0000;
+  }
+  .tip2 {
+    box-sizing: border-box;
+    padding: 0 30px;
+    height: 100px;
+    input {
+      width:100%;
+      height: 25px;
+      border-bottom: 3px solid @theme1;
+    }
+    button{
+      width: 60px;
+      height: 25px;
+      background-color: @theme1;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+    }
+    button:hover{
+      background-color: #006eff;
+    }
   }
 }
 .lists {
@@ -134,7 +236,8 @@ export default {
       font-size: 12px;
     }
   }
-  .list:hover {
+  .list:hover,
+  .add-new:hover {
     background-color: rgb(230, 230, 230);
     cursor: pointer;
   }

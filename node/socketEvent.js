@@ -15,7 +15,7 @@ const events = {
                        let initObj = [
                         {flag:'config',name:name,password:pas,friends:[],vip:0},
                         {flag:1,mes:{sys:[]}},
-                        {flag:2,unread:{},system:{}}
+                        {flag:2,unread:{},system:[]}
                        ]
                        res.insertMany(initObj,err=>{
                            if(err){
@@ -47,6 +47,13 @@ const events = {
                 socket.emit('c_unified','c_login',data)
             })
         })
+    },
+    exit(socket,name){
+        let id = ONLINE[name]
+        if(id){
+            delete ONLINE[name]
+            delete _ONLINE[id]
+        }
     },
     sendMessage(socket,data){
         if(!(data&&data.sendBy&&data.sendTo)){
@@ -103,6 +110,41 @@ const events = {
             m[`unread.${to}`] = 1
             user.updateOne({flag:2},{
                 $unset:m
+            })
+        })
+    },
+    addFriend1(socket,{from,to}){
+        USERS.get(to,user=>{
+            user.find().toArray((err,res)=>{
+                if(!res.length){
+                    socket.emit('c_unified','c_addFriend1',{code:0})
+                }else{
+                    socket.emit('c_unified','c_addFriend1',{code:1})
+                }
+            })
+        })
+    },
+    addFriend2(socket,{from,to,mes}){
+        let id=ONLINE[to]
+        let res = {sendBy:from,mes}
+        if(id){
+            io.to(id).emit('c_unified_home','receiveSys',res)
+        }else{
+            USERS.get(to,user=>{
+                user.updateOne({flag:2},{
+                    $push:{
+                        system:res
+                    }
+                })
+            })
+        }
+    },
+    getUnreadSys(socket,name){
+        USERS.get(name,user=>{
+            user.find({flag:2}).toArray((err,res)=>{
+                if(res[0].system.length){
+                    socket.emit('c_unified_home','c_getUnreadSys',res[0].system)
+                }
             })
         })
     }

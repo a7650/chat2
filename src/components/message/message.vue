@@ -25,7 +25,7 @@ export default {
 @import "../../assets/variable.less";
 @import "../../assets/mixin.less";
 .page-message{
-    position: fixed;
+    position: absolute;
     top: 80px;
     left: 60px;
     bottom: 0;

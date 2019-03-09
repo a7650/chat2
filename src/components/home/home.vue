@@ -3,6 +3,18 @@
     <div class="page-home">
       <div class="head">
         <h3>Message</h3>
+        <div class="sys">
+          <div class="item" v-for="(item,index) in sys" :key="item.sendBy">
+            <div class="content">
+              <span class="name">"{{item.sendBy}}"希望添加您为好友</span>
+              <span class="mes">附加信息:{{item.mes}}</span>
+              <div class="button">
+                <button @click="refuse(item.sendBy,index)">拒绝</button>
+                <button @click="agree(item.sendBy,index)">同意</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="mine">
           <div class="avatar">{{USER.name[1]}}</div>
           <div class="info">
@@ -30,33 +42,55 @@
 </template>
 
 <script>
-import Tran from "base/animation/home"
-import {mapGetters,mapMutations} from 'vuex'
+import Tran from "base/animation/home";
+import { mapGetters, mapMutations } from "vuex";
 export default {
-  data(){
-    return{
-      exit_alert:false
-    }
+  data() {
+    return {
+      exit_alert: false,
+      sys: []
+    };
   },
-  computed:{
-    ...mapGetters([
-      'USER',
-      'FRIENDS'
-    ])
+  computed: {
+    ...mapGetters(["USER", "FRIENDS"])
   },
-  methods:{
-    exit(){
-      this.$router.replace({
-        name:'login'
-      })
-      this.EXIT()
+  methods: {
+    refuse(name,index){
+      let n = [...this.sys]
+      n.splice(index,1)
+      this.sys = n
     },
-    ...mapMutations([
-      'EXIT'
-    ])
+    agree(name){
+
+    },
+    getUnreadSys() {
+      this.$socket.emit("unified", "getUnreadSys", this.USER.name);
+    },
+    c_getUnreadSys(data) {
+      let n = [...data, ...this.sys].reverse();
+      this.sys = n;
+    },
+    exit() {
+      this.$router.replace({
+        name: "login"
+      });
+      this.$socket.emit("unified", "exit", this.USER.name);
+      this.EXIT();
+    },
+    ...mapMutations(["EXIT"])
   },
   components: {
     Tran
+  },
+  sockets: {
+    c_unified_home(res) {
+      let type = res[0];
+      let data = res[1];
+      this[type](data);
+    }
+  },
+  created() {
+    this.getUnreadSys();
   }
 };
 </script>
@@ -65,7 +99,7 @@ export default {
 @import "../../assets/variable.less";
 @import "../../assets/mixin.less";
 .page-home {
-  position: fixed;
+  position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
@@ -89,9 +123,9 @@ export default {
     text-align: center;
     color: #fff;
     font-size: 20px;
-    transition: .2s;
+    transition: 0.2s;
   }
-  .item:hover{
+  .item:hover {
     transform: scale(1.1);
     cursor: pointer;
   }
@@ -101,20 +135,20 @@ export default {
   padding-left: 60px;
   height: 80px;
   border-bottom: 1px solid @line-color;
- 
+  display: flex;
   h3 {
-  line-height: 80px;
+    line-height: 80px;
     font-size: 25px;
     font-weight: bold;
-    margin-left: 10px;
-    width: 20%;
+    width: 290px;
+    padding-left: 10px;
     float: left;
   }
   .mine {
     width: 150px;
     height: 100%;
-    float: right;
     display: flex;
+    margin-left: 250px;
     .avatar {
       width: 50px;
       height: 50px;
@@ -134,10 +168,10 @@ export default {
       display: flex;
       flex-direction: column;
       .name {
-        flex: 1;  
+        flex: 1;
         box-sizing: border-box;
         line-height: 40px;
-        padding-left: 3PX;
+        padding-left: 3px;
         .no-wrap();
       }
       .exit {
@@ -151,30 +185,30 @@ export default {
           color: #fff;
           border: none;
         }
-        .alert{
-           z-index: 99;
+        .alert {
+          z-index: 99;
           width: 150px;
           height: 80px;
           border-radius: 10px;
           background-color: #fff;
-          box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
           position: absolute;
           top: 100%;
           right: 0;
-          animation: alert .2s;
+          animation: alert 0.2s;
           transform-origin: center top;
-          .mes{
+          .mes {
             height: 50px;
             width: 100%;
-            line-height:50px;
+            line-height: 50px;
             text-align: center;
             color: #000;
           }
-          .button{
+          .button {
             height: 30px;
             display: flex;
             justify-content: space-around;
-            span{
+            span {
               width: 50px;
               height: 20px;
               // margin-top: 5px;
@@ -185,7 +219,7 @@ export default {
               border-radius: 5px;
               font-size: 12px;
             }
-            span:hover{
+            span:hover {
               cursor: pointer;
               background-color: #2266f0;
             }
@@ -195,15 +229,69 @@ export default {
     }
   }
 }
-
+.sys {
+  z-index: 99;
+  display: flex;
+  flex: 1;
+  height: 100%;
+  width: 1px;
+  position: relative;
+  .item {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    top: 2px;
+    animation: item 0.5s;
+  }
+  .content {
+    max-width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    background-color: #fff;
+  }
+  .name {
+    margin-right: 20px;
+    .no-wrap;
+  }
+  .mes {
+    .no-wrap;
+  }
+  .button {
+    margin-top: 10px;
+    width: 100%;
+    text-align: center;
+    button {
+      width: 60px;
+      height: 20px;
+      background-color: @theme1;
+      border-radius: 5px;
+      color: #fff;
+      border: none;
+      margin-right: 20px;
+    }
+    button:hover {
+      background-color: #2266f0;
+    }
+  }
+}
 @keyframes alert {
-  0%{
-    transform: scale(.5);
+  0% {
+    transform: scale(0.5);
     opacity: 0;
   }
-  100%{
+  100% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+@keyframes item {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0);
   }
 }
 </style>
