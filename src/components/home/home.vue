@@ -7,7 +7,7 @@
           <div class="item" v-for="(item,index) in sys" :key="item.sendBy">
             <div class="content">
               <span class="name">"{{item.sendBy}}"希望添加您为好友</span>
-              <span class="mes">附加信息:{{item.mes}}</span>
+              <span class="mes">附加信息:{{item.mes||"无"}}</span>
               <div class="button">
                 <button @click="refuse(item.sendBy,index)">拒绝</button>
                 <button @click="agree(item.sendBy,index)">同意</button>
@@ -59,9 +59,18 @@ export default {
       let n = [...this.sys]
       n.splice(index,1)
       this.sys = n
+      this.$socket.emit('unified','removeSys',{from:this.USER.name,to:name})
     },
-    agree(name){
-
+    agree(name,index){
+      let m = this.FRIENDS.findIndex(item=>item===name)
+      if(m>-1){
+        return 
+      }
+      let n = [...this.sys]
+      n.splice(index,1)
+      this.sys = n
+      this.$socket.emit('unified','agreeFriend',{from:this.USER.name,to:name})
+      this.REFRESH_FS(name)
     },
     getUnreadSys() {
       this.$socket.emit("unified", "getUnreadSys", this.USER.name);
@@ -70,6 +79,9 @@ export default {
       let n = [...data, ...this.sys].reverse();
       this.sys = n;
     },
+    receiveSys(data){
+      this.c_getUnreadSys([data])
+    },
     exit() {
       this.$router.replace({
         name: "login"
@@ -77,7 +89,7 @@ export default {
       this.$socket.emit("unified", "exit", this.USER.name);
       this.EXIT();
     },
-    ...mapMutations(["EXIT"])
+    ...mapMutations(["EXIT","REFRESH_FS"])
   },
   components: {
     Tran
@@ -231,13 +243,13 @@ export default {
 }
 .sys {
   z-index: 99;
-  display: flex;
   flex: 1;
   height: 100%;
   width: 1px;
   position: relative;
   .item {
     width: 100%;
+    min-width: 350px;
     display: flex;
     justify-content: center;
     position: absolute;

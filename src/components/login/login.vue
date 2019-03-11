@@ -167,7 +167,7 @@ export default {
     ])
   },
   sockets: {
-    c_unified(res) {
+    c_unified_login(res) {
       let type = res[0];
       let data = res[1];
       this[type](data);

@@ -7,3 +7,5 @@ export const EXIT = 'EXIT'
 export const SET_CURRENTLINK = "SET_CURRENTLINK"
 
 export const SET_UNREADNUM = "SET_UNREADNUM"
+
+export const REFRESH_FS = "REFRESH_FS"

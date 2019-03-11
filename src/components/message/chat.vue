@@ -48,7 +48,7 @@ export default {
     }
   },
   sockets: {
-    c_unified(res) {
+    c_unified_chat(res) {
       let type = res[0];
       let data = res[1];
       this[type](data);
@@ -155,7 +155,7 @@ header {
   flex: 1;
   height: 1px;
   width: 100%;
-  overflow: hidden;
+  overflow:scroll;
 }
 footer {
   height: 70px;
@@ -188,7 +188,7 @@ footer {
 }
 .main-mes {
   li {
-    padding: 20px 20px 0;
+    padding: 20px 20px ;
     overflow: hidden;
     width: 100%;
     box-sizing: border-box;

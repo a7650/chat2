@@ -20,10 +20,14 @@
           <input type="text" placeholder="添加验证信息" v-model="add_mes">
           <br>
           <button @click="addFriend2">发送</button>
+          <div class="filter" v-show="tip2Flag">
+            <i class="icon-true"></i>
+            <br>已向对方发送好友请求
+          </div>
         </div>
         <div v-show="tip===3" class="tip tip3">{{tip3_mes}}</div>
       </li>
-      <li class="list" v-for="item in filterFRIENDS" :key="item" @click="select_friend(item)">
+      <li class="list" v-for="item in filterFRIENDS" :key="item" @click="select_friend(item)" :class="{active:CURRENT_LINK===item}">
         <div class="avatar">{{item[0]}}</div>
         <div class="name">{{item}}</div>
         <div class="num" v-show="UNREAD_NUM[item]>0">{{UNREAD_NUM[item]}}</div>
@@ -41,7 +45,8 @@ export default {
       tip: 1,
       tip3_mes: "",
       c_search: "",
-      add_mes:""
+      add_mes: "",
+      tip2Flag:false
     };
   },
   props: ["friendsShow"],
@@ -67,11 +72,16 @@ export default {
   },
   methods: {
     addFriend1() {
+      this.tip3_mes = `正在查找"${this.searchText}"...`;
+      this.tip = 3;
+      if (this.searchText===this.USER.name) {
+        this.tip3_mes = "不能添加自己";
+        return;
+      }
       this.c_search = this.searchText;
       let n = this.FRIENDS.findIndex(i => i === this.c_search);
       if (n > -1) {
         this.tip3_mes = "对方已经是你的好友了";
-        this.tip = 3;
         return;
       }
       this.$socket.emit("unified", "addFriend1", {
@@ -81,14 +91,24 @@ export default {
     },
     c_addFriend1(data) {
       if (data.code) {
+        this.tip2Flag = false;
         this.tip = 2;
       } else {
         this.tip3_mes = "不存在此人";
         this.tip = 3;
       }
     },
-    addFriend2(){
-      this.$socket.emit('unified','addFriend2',{from:this.USER.name,to:this.c_search,mes:this.add_mes})
+    addFriend2() {
+      this.$socket.emit("unified", "addFriend2", {
+        from: this.USER.name,
+        to: this.c_search,
+        mes: this.add_mes
+      });
+      this.tip2Flag = true;
+      this.add_mes = "";
+    },
+    refresh_fs(name) {
+      this.REFRESH_FS(name);
     },
     select_friend(name) {
       this.SET_CURRENTLINK(name);
@@ -100,10 +120,10 @@ export default {
         this.$socket.emit("unified", "hasRead", data);
       }
     },
-    ...mapMutations(["SET_CURRENTLINK", "SET_UNREADNUM"])
+    ...mapMutations(["SET_CURRENTLINK", "SET_UNREADNUM", "REFRESH_FS"])
   },
   sockets: {
-    c_unified(res) {
+    c_unified_fs(res) {
       let type = res[0];
       let data = res[1];
       this[type](data);
@@ -165,7 +185,7 @@ export default {
   border-bottom: 1px solid @line-color;
   background-color: rgb(243, 243, 243);
   margin-bottom: 5px;
-  .tip{
+  .tip {
     height: 30px;
     width: 100%;
   }
@@ -179,12 +199,28 @@ export default {
     box-sizing: border-box;
     padding: 0 30px;
     height: 100px;
+    position: relative;
+    .filter {
+      box-sizing: border-box;
+      padding-top: 20px;
+      i {
+        font-size: 40px;
+        color: @theme1;
+        font-weight: bold;
+      }
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: rgb(255, 255, 255);
+    }
     input {
-      width:100%;
+      width: 100%;
       height: 25px;
       border-bottom: 3px solid @theme1;
     }
-    button{
+    button {
       width: 60px;
       height: 25px;
       background-color: @theme1;
@@ -192,7 +228,7 @@ export default {
       border-radius: 5px;
       color: #fff;
     }
-    button:hover{
+    button:hover {
       background-color: #006eff;
     }
   }
@@ -240,6 +276,15 @@ export default {
   .add-new:hover {
     background-color: rgb(230, 230, 230);
     cursor: pointer;
+  }
+  .list.active{
+    background-color: @theme1;
+  }
+  .list.active .name{
+    color: #fff;
+  }
+  .list.active:hover{
+    background-color: @theme1;
   }
 }
 .hide {
