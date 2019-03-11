@@ -6,33 +6,41 @@
         <i class="icon-search" :class="{left:iStyle}"></i>
       </div>
     </div>
-    <ul class="lists">
-      <li class="add-new" v-show="searchText">
-        <div v-show="tip===1" class="tip tip1" @click="addFriend1">
-          从网络上添加"
-          <span class="name">{{searchText}}</span>"
-        </div>
-        <div v-show="tip===2" class="tip tip2">
-          <div>
-            你将添加"
-            <span class="name">{{c_search}}</span>"
+    <div class="main">
+      <ul class="lists">
+        <li class="add-new" v-show="searchText">
+          <div v-show="tip===1" class="tip tip1" @click="addFriend1">
+            从网络上添加"
+            <span class="name">{{searchText}}</span>"
           </div>
-          <input type="text" placeholder="添加验证信息" v-model="add_mes">
-          <br>
-          <button @click="addFriend2">发送</button>
-          <div class="filter" v-show="tip2Flag">
-            <i class="icon-true"></i>
-            <br>已向对方发送好友请求
+          <div v-show="tip===2" class="tip tip2">
+            <div>
+              你将添加"
+              <span class="name">{{c_search}}</span>"
+            </div>
+            <input type="text" placeholder="添加验证信息" v-model="add_mes">
+            <br>
+            <button @click="addFriend2">发送</button>
+            <div class="filter" v-show="tip2Flag">
+              <i class="icon-true"></i>
+              <br>已向对方发送好友请求
+            </div>
           </div>
-        </div>
-        <div v-show="tip===3" class="tip tip3">{{tip3_mes}}</div>
-      </li>
-      <li class="list" v-for="item in filterFRIENDS" :key="item" @click="select_friend(item)" :class="{active:CURRENT_LINK===item}">
-        <div class="avatar">{{item[0]}}</div>
-        <div class="name">{{item}}</div>
-        <div class="num" v-show="UNREAD_NUM[item]>0">{{UNREAD_NUM[item]}}</div>
-      </li>
-    </ul>
+          <div v-show="tip===3" class="tip tip3">{{tip3_mes}}</div>
+        </li>
+        <li
+          class="list"
+          v-for="item in filterFRIENDS"
+          :key="item"
+          @click="select_friend(item)"
+          :class="{active:CURRENT_LINK===item}"
+        >
+          <div class="avatar">{{item[0]}}</div>
+          <div class="name">{{item}}</div>
+          <div class="num" v-show="UNREAD_NUM[item]>0">{{UNREAD_NUM[item]}}</div>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -46,7 +54,7 @@ export default {
       tip3_mes: "",
       c_search: "",
       add_mes: "",
-      tip2Flag:false
+      tip2Flag: false
     };
   },
   props: ["friendsShow"],
@@ -74,7 +82,7 @@ export default {
     addFriend1() {
       this.tip3_mes = `正在查找"${this.searchText}"...`;
       this.tip = 3;
-      if (this.searchText===this.USER.name) {
+      if (this.searchText === this.USER.name) {
         this.tip3_mes = "不能添加自己";
         return;
       }
@@ -119,6 +127,10 @@ export default {
         let data = { from: this.USER.name, to: name };
         this.$socket.emit("unified", "hasRead", data);
       }
+      this.$nextTick(() => {
+        let main = document.getElementById("main");
+        main.scrollTop = main.scrollHeight;
+      });
     },
     ...mapMutations(["SET_CURRENTLINK", "SET_UNREADNUM", "REFRESH_FS"])
   },
@@ -141,6 +153,8 @@ export default {
   height: 100%;
   border-right: 1px solid @line-color;
   transition: 0.3s;
+  display: flex;
+  flex-direction: column;
 }
 .search {
   width: 100%;
@@ -176,6 +190,10 @@ export default {
     transform: translateX(0);
   }
 }
+.main{
+  flex: 1;
+   overflow-y: scroll;
+}
 .add-new {
   font-size: 15px;
   color: #000;
@@ -188,9 +206,11 @@ export default {
   .tip {
     height: 30px;
     width: 100%;
+    .no-wrap()
   }
   .name {
     color: @theme1;
+    .no-wrap();
   }
   .tip3 {
     color: #ff0000;
@@ -277,13 +297,13 @@ export default {
     background-color: rgb(230, 230, 230);
     cursor: pointer;
   }
-  .list.active{
+  .list.active {
     background-color: @theme1;
   }
-  .list.active .name{
+  .list.active .name {
     color: #fff;
   }
-  .list.active:hover{
+  .list.active:hover {
     background-color: @theme1;
   }
 }

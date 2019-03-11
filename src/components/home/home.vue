@@ -1,13 +1,20 @@
 <template>
   <Tran>
     <div class="page-home">
+      <div ref="detail" class="detail" v-show="detail">{{detail_mes}}</div>
       <div class="head">
         <h3>Message</h3>
         <div class="sys">
           <div class="item" v-for="(item,index) in sys" :key="item.sendBy">
             <div class="content">
               <span class="name">"{{item.sendBy}}"希望添加您为好友</span>
-              <span class="mes">附加信息:{{item.mes||"无"}}</span>
+              <span
+                class="mes"
+                @click="getDetail(item.mes)"
+                @mousemove="moveDetail($event,item.mes)"
+                @mouseenter="detail=true;detail_mes=item.mes"
+                @mouseleave="detail=false"
+              >附加信息:{{item.mes||"无"}}</span>
               <div class="button">
                 <button @click="refuse(item.sendBy,index)">拒绝</button>
                 <button @click="agree(item.sendBy,index)">同意</button>
@@ -48,29 +55,46 @@ export default {
   data() {
     return {
       exit_alert: false,
-      sys: []
+      sys: [],
+      detail: false,
+      detail_mes: ""
     };
   },
   computed: {
     ...mapGetters(["USER", "FRIENDS"])
   },
   methods: {
-    refuse(name,index){
-      let n = [...this.sys]
-      n.splice(index,1)
-      this.sys = n
-      this.$socket.emit('unified','removeSys',{from:this.USER.name,to:name})
+    moveDetail(e,mes){
+      this.detail_mes = mes
+      let d = this.$refs.detail
+      d.style.top = `${e.pageY + 30}px`
+      d.style.left = `${e.pageX - 50}px`
     },
-    agree(name,index){
-      let m = this.FRIENDS.findIndex(item=>item===name)
-      if(m>-1){
-        return 
+    getDetail(mes) {
+      window.alert(mes || "无");
+    },
+    refuse(name, index) {
+      let n = [...this.sys];
+      n.splice(index, 1);
+      this.sys = n;
+      this.$socket.emit("unified", "removeSys", {
+        from: this.USER.name,
+        to: name
+      });
+    },
+    agree(name, index) {
+      let m = this.FRIENDS.findIndex(item => item === name);
+      if (m > -1) {
+        return;
       }
-      let n = [...this.sys]
-      n.splice(index,1)
-      this.sys = n
-      this.$socket.emit('unified','agreeFriend',{from:this.USER.name,to:name})
-      this.REFRESH_FS(name)
+      let n = [...this.sys];
+      n.splice(index, 1);
+      this.sys = n;
+      this.$socket.emit("unified", "agreeFriend", {
+        from: this.USER.name,
+        to: name
+      });
+      this.REFRESH_FS(name);
     },
     getUnreadSys() {
       this.$socket.emit("unified", "getUnreadSys", this.USER.name);
@@ -79,8 +103,8 @@ export default {
       let n = [...data, ...this.sys].reverse();
       this.sys = n;
     },
-    receiveSys(data){
-      this.c_getUnreadSys([data])
+    receiveSys(data) {
+      this.c_getUnreadSys([data]);
     },
     exit() {
       this.$router.replace({
@@ -89,7 +113,7 @@ export default {
       this.$socket.emit("unified", "exit", this.USER.name);
       this.EXIT();
     },
-    ...mapMutations(["EXIT","REFRESH_FS"])
+    ...mapMutations(["EXIT", "REFRESH_FS"])
   },
   components: {
     Tran
@@ -116,6 +140,18 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
+}
+.detail{
+  background-color: #fff;
+  padding: 15px;
+  color: #000;
+  position: fixed;
+  max-width: 300px;
+  word-break: break-all;
+  border: 1px solid @line-color;
+  border-radius: 3px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  z-index: 100;
 }
 .side-bar {
   width: 60px;
@@ -262,6 +298,7 @@ export default {
     border-radius: 5px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     background-color: #fff;
+    .no-wrap();
   }
   .name {
     margin-right: 20px;
@@ -269,6 +306,9 @@ export default {
   }
   .mes {
     .no-wrap;
+  }
+  .mes:hover {
+    cursor: pointer;
   }
   .button {
     margin-top: 10px;
