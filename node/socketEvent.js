@@ -1,6 +1,9 @@
 const io = require('./main').io
 const MDB = require('./MDBHandle')
 const USERS = MDB.users
+const axios = require('axios')
+const PUBLIC_KEY='PwF7MjhPinObMUPus'
+const PRIVATE_KEY = 'S2Taedkg4hGEiYH8y'
 var ONLINE = {}
 var _ONLINE = {}
 
@@ -54,6 +57,21 @@ const events = {
             delete ONLINE[name]
             delete _ONLINE[id]
         }
+    },
+    getWeather(socket,{location}){
+        // let url = `https://api.seniverse.com/v3/weather/now.json?key=S2Taedkg4hGEiYH8y&location=beijing&language=zh-Hans&unit=c`
+        let url = `https://api.seniverse.com/v3/weather/now.json?key=${PRIVATE_KEY}&location=${location}&language=zh-Hans&unit=c`
+        axios.get(url).then(res=>{
+            socket.emit('c_unified_weather','c_getWeather',res.data)
+        })
+    },
+    getSong(socket){
+        let data = {
+            name:'Blue',
+            singer:'Xeuphoria',
+            src:'http://dl.stream.qqmusic.qq.com/C400001gCBr03bgXiX.m4a?fromtag=38&guid=5931742855&vkey=49E08FB9505BB389957E521064EEF6DB2007DAA13E53ED77A0CB473374E7F933DBAC3409D3D8A74F77FAB4D74B391B0514358C1342D55722'
+        }
+        socket.emit('c_unified_getSong','c_getSong',data)
     },
     sendMessage(socket, data) {
         if (!(data && data.sendBy && data.sendTo)) {
@@ -177,9 +195,6 @@ const events = {
     }
 
 }
-
-
-
 
 function socketInit(socket) {
     socket.on('unified', (type, data) => {

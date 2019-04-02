@@ -43,6 +43,7 @@
         <div class="item">通讯</div>
         <div class="item">备忘</div>
       </div>
+      <extendBar></extendBar>
       <router-view></router-view>
     </div>
   </Tran>
@@ -51,6 +52,7 @@
 <script>
 import Tran from "base/animation/home";
 import { mapGetters, mapMutations } from "vuex";
+import extendBar from './extend/extendBar'
 export default {
   data() {
     return {
@@ -59,6 +61,9 @@ export default {
       detail: false,
       detail_mes: ""
     };
+  },
+  components:{
+    extendBar,Tran
   },
   computed: {
     ...mapGetters(["USER", "FRIENDS"])
@@ -114,9 +119,6 @@ export default {
       this.EXIT();
     },
     ...mapMutations(["EXIT", "REFRESH_FS"])
-  },
-  components: {
-    Tran
   },
   sockets: {
     c_unified_home(res) {

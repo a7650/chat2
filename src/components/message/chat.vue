@@ -8,7 +8,7 @@
     <div class="main" ref="main" id="main">
       <ul class="main-mes">
         <li v-for="(item,index) in message[CURRENT_LINK]" :key="index">
-          <div class="you" v-if="!item.flag">
+          <div class="your" v-if="!item.flag">
             <div class="avatar">{{avatar}}</div>
             <span class="mes">{{item.mes}}</span>
           </div>
@@ -74,7 +74,7 @@ export default {
       }
     },
     sendMessage() {
-      if(!this.CURRENT_LINK){
+      if (!this.CURRENT_LINK) {
         window.alert("请选择联系人");
         return;
       }
@@ -95,10 +95,10 @@ export default {
       } else {
         this.message[this.CURRENT_LINK].push(n);
       }
-      this.$nextTick(()=>{
-        let main = document.getElementById('main');
+      this.$nextTick(() => {
+        let main = document.getElementById("main");
         main.scrollTop = main.scrollHeight;
-      })
+      });
     },
     receiveMessage(data) {
       if (!this.message[data.sendBy]) {
@@ -111,23 +111,23 @@ export default {
         let num = n ? n + 1 : 1;
         this.set_unreadnum(data.sendBy, num);
       }
-      this.$nextTick(()=>{
-        let main = document.getElementById('main');
+      this.$nextTick(() => {
+        let main = document.getElementById("main");
         main.scrollTop = main.scrollHeight;
-      })
+      });
     },
     ...mapMutations(["SET_CURRENTLINK", "SET_UNREADNUM"])
   },
   created() {
     this.getUnread();
   },
-  mounted(){
-    this.$refs.input.addEventListener('keydown',event=>{
-      let e = event||window.event
-      if(e.keyCode===13){
-        this.sendMessage()
+  mounted() {
+    this.$refs.input.addEventListener("keydown", event => {
+      let e = event || window.event;
+      if (e.keyCode === 13) {
+        this.sendMessage();
       }
-    })
+    });
   }
 };
 </script>
@@ -195,7 +195,7 @@ footer {
   .send-button {
     width: 70px;
     height: 30px;
-    text-align: center; 
+    text-align: center;
     button {
       width: 50px;
       height: 100%;
@@ -230,7 +230,8 @@ footer {
     max-width: 60%;
     word-break: break-all;
   }
-  .you {
+  .your {
+    animation: yourfadein .3s linear;
     .avatar {
       background-color: @theme2;
       color: #fff;
@@ -243,6 +244,7 @@ footer {
     }
   }
   .my {
+    animation: myfadein .3s linear;
     .avatar {
       color: #fff;
       background-color: @theme1;
@@ -252,6 +254,32 @@ footer {
     .mes {
       float: right;
       background-color: @theme1;
+    }
+  }
+  @keyframes myfadein {
+    0%{
+      transform: translateX(50px);
+      opacity: 0;
+    }
+    50%{
+      transform: translateX(-10px);
+      opacity: 1;
+    }
+    100%{
+      transform: translateX(0);
+    }
+  }
+  @keyframes yourfadein {
+    0%{
+      transform: translateX(-50px);
+      opacity: 0;
+    }
+    50%{
+      transform: translateX(10px);
+      opacity: 1;
+    }
+    100%{
+      transform: translateX(0);
     }
   }
 }

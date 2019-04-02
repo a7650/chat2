@@ -30,7 +30,6 @@ export default {
     left: 60px;
     bottom: 0;
     right: 400px;
-    min-width: 700px;
     overflow: hidden;
     border-right:1px solid @line-color;
 }
