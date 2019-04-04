@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import weather from './weather.vue'
-import song from './song.vue'
+import weather from './weather/weather'
+import song from './song/song'
 export default {
     components:{
         weather,song

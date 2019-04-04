@@ -1,9 +1,9 @@
 <template>
-  <div class="time-control" @mousemove="processTouchMove" @mouseleave="processTouchEnd">
+  <div class="time-control" @mousemove="processTouchMove" @mouseleave="processTouchEnd" @mouseup="processTouchEnd">
     <div class="now-time">{{timeFormate(currentTime)}}</div>
     <div class="process" ref="process">
       <div class="played" ref="played"></div>
-      <div class="now" ref="now" @mousedown="processTouchStart" @mouseup="processTouchEnd">
+      <div class="now" ref="now" @mousedown="processTouchStart"  @mouseenter="processEnter"  @mouseleave="processLeave">
         <div class="tips" v-if="processing">{{timeFormate(this.processTime)}}</div>
       </div>
     </div>
@@ -21,7 +21,18 @@ export default {
   },
   props: ["currentTime", "duration"],
   methods: {
+    processEnter(e){
+      e.currentTarget.classList.add('an-enter')
+    },
+    processLeave(e){
+      if(!this.touch.init){
+        e.currentTarget.classList.remove('an-enter')
+      }
+
+    },
+
     processTouchStart(e) {
+      this.$refs.now.classList.add('an-enter')
       this.touch.init = true;
       this.touch.startX = e.pageX;
       this.touch.playedX = this.$refs.played.clientWidth;
@@ -46,6 +57,7 @@ export default {
       if (!this.touch.init) {
         return;
       }
+      this.$refs.now.classList.remove('an-enter')
       this.touch.init = false;
       this.processing = false;
       this.$emit("turnProcess", this.processTime);
@@ -101,7 +113,7 @@ export default {
   .process {
     flex: 1;
     height: 10px;
-    background: rgba(0, 0, 0, .1);
+    background: rgba(0, 0, 0, 0.1);
     position: relative;
     margin: 0 10px;
     border-radius: 5px;
@@ -119,7 +131,9 @@ export default {
       top: -10px;
       margin-left: -5px;
       position: relative;
-      box-shadow: 0 0 5px rgba(0, 0, 0, .2);
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+      // transition: 0.2s;
+      transform-origin: center;
       .tips {
         width: 40px;
         border-radius: 5px;
@@ -129,8 +143,29 @@ export default {
         position: absolute;
         left: -19px;
         top: -25px;
+        transform-origin: bottom;
+        transform:scale(.7);
       }
     }
+    .an-enter{
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+      animation: enter .3s;
+      animation-fill-mode: forwards;
+    }
+    .now:hover {
+      cursor: pointer;
+      // background-color: #2298f0;
+      // transform: scale(1.3);
+      // box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    }
+  }
+}
+@keyframes enter {
+  30%{
+    transform: scale(.8);
+  }
+  100%{
+    transform: scale(1.4);
   }
 }
 </style>

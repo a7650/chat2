@@ -273,6 +273,7 @@ export default {
       text-align: center;
       // background-color: rgba(0, 0, 0, .05);
       background-color: #fff;
+      user-select: none;
     }
     .name {
       font-size: 20px;
